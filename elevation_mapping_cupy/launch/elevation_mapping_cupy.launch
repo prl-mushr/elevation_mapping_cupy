@@ -1,4 +1,7 @@
 <launch>
+
+
+
   <!-- Elevation mapping node -->
   <node pkg="elevation_mapping_cupy" type="elevation_mapping_node" name="elevation_mapping" output="screen">
     <rosparam command="load" file="$(find elevation_mapping_cupy)/config/parameters.yaml" />
@@ -9,12 +12,32 @@
   </node>
 
   <include file="$(find elevation_mapping_cupy)/launch/depth_to_pcl.launch"/>
+
+  <node pkg="nodelet" type="nodelet" name="pointcloud_filter_manager" args="manager"/>
+
+  <!-- Passthrough Filter -->
+  <node pkg="nodelet" type="nodelet" name="Z_filter" args="load pcl/PassThrough pointcloud_filter_manager">
+      <remap from="~input" to="/points"/>
+      <param name="filter_field_name" value="z"/>
+      <param name="filter_limit_min" value="0.1"/>
+      <param name="filter_limit_max" value="14.0"/>
+      <remap from="~output" to="z_filter"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="Y_filter" args="load pcl/PassThrough pointcloud_filter_manager">
+      <remap from="~input" to="z_filter"/>
+      <param name="filter_field_name" value="y"/>
+      <param name="filter_limit_min" value="-1.5"/>
+      <param name="filter_limit_max" value="0.25"/>
+      <remap from="~output" to="boxed_points"/>
+  </node>
+
   <!-- <node pkg="elevation_mapping_demos" type="pose_to_tf.py" name = "transformer" output = "screen"/> -->
   <node pkg="hound_core" type="map_cropper.py" name = "cropper" output = "screen">
     <remap from="elevation_mapping/elevation_map_raw" to="elevation_mapping_gpu/elevation_map_raw" />
-    <remap from="elevation_mapping/elevation_map_cropped" to="elevation_mapping_gpu/elevation_map_cropped" />
+    <remap from="elevation_mapping/elevation_map_cropped_cv2" to="elevation_mapping_gpu/elevation_map_cropped_cv2" />
   </node>
-
+  <node pkg="hound_core" type="flat_ground_publisher.py" name = "flat_ground_publisher" output = "screen"/>
   <!-- <node pkg="grid_map_occlusion_inpainting_ros" type="node" name="grid_map_occlusion_inpainting" output="screen" launch-prefix="">
       <rosparam file="$(find grid_map_occlusion_inpainting_ros)/config/default.yaml" />
       <remap from="elevation_mapping/elevation_map_raw" to="elevation_mapping_gpu/elevation_map_cropped" />

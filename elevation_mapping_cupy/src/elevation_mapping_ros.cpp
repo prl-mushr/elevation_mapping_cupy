@@ -228,7 +228,7 @@ void ElevationMappingNode::publishMapOfIndex(int index) {
 
 void ElevationMappingNode::removePointsOutsideLimits(pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud) 
 {
-  if((int)pointCloud->size() > 1000) // don't filter unless we have more than 1000 points.
+  if((int)pointCloud->size() > 1000 or 0) // don't filter unless we have more than 1000 points.
   {
     pcl::PointCloud<pcl::PointXYZ> tempPointCloud_height, tempPointCloud_depth, tempPointCloud_voxel, tempPointCloud_NN;
     pcl::PassThrough<pcl::PointXYZ> passThroughFilter(true);
@@ -261,19 +261,24 @@ void ElevationMappingNode::removePointsOutsideLimits(pcl::PointCloud<pcl::PointX
     pointCloud->swap(tempPointCloud_depth);
 
     // Reduce points using VoxelGrid filter.
-    pcl::VoxelGrid<pcl::PointXYZ> voxelGridFilter;
-    voxelGridFilter.setInputCloud(pointCloud);
-    voxelGridFilter.setLeafSize(double(voxel_size), double(voxel_size), double(voxel_size));
-    voxelGridFilter.setMinimumPointsNumberPerVoxel(voxel_samples);
-    voxelGridFilter.filter(tempPointCloud_voxel);
-    pointCloud->swap(tempPointCloud_voxel);
-    
-    pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
-    outrem.setInputCloud(pointCloud);
-    outrem.setRadiusSearch(outlier_factor*voxel_size); 
-    outrem.setMinNeighborsInRadius (min_nbrs);
-    outrem.filter(tempPointCloud_NN);
-    pointCloud->swap(tempPointCloud_NN);
+    if(voxel_samples != -1)
+    {
+      pcl::VoxelGrid<pcl::PointXYZ> voxelGridFilter;
+      voxelGridFilter.setInputCloud(pointCloud);
+      voxelGridFilter.setLeafSize(double(voxel_size), double(voxel_size), double(voxel_size));
+      voxelGridFilter.setMinimumPointsNumberPerVoxel(voxel_samples);
+      voxelGridFilter.filter(tempPointCloud_voxel);
+      pointCloud->swap(tempPointCloud_voxel);
+    }
+    if (min_nbrs != -1)
+    {
+      pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
+      outrem.setInputCloud(pointCloud);
+      outrem.setRadiusSearch(outlier_factor*voxel_size); 
+      outrem.setMinNeighborsInRadius (min_nbrs);
+      outrem.filter(tempPointCloud_NN);
+      pointCloud->swap(tempPointCloud_NN);
+    }
 
   }
   // ROS_INFO("removePointsOutsideLimits() reduced point cloud to %i points.", (int)pointCloud->size());

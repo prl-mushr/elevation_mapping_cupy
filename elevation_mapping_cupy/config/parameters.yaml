@@ -1,7 +1,7 @@
 #### Basic parameters ########
-resolution: 0.125                                # resolution in m.
-map_length: 32                            # map's size in m.
-sensor_noise_factor: 0.1                       # point's noise is sensor_noise_factor*z^2 (z is distance from sensor).
+resolution: 0.25                                # resolution in m.
+map_length: 32                          # map's size in m.
+sensor_noise_factor: 0.01                       # point's noise is sensor_noise_factor*z^2 (z is distance from sensor).
 mahalanobis_thresh: 0.5                         # points outside this distance is outlier.
 outlier_variance: 0.05                          # if point is outlier, add this value to the cell.
 drift_compensation_variance_inler: 0.05         # cells under this value is used for drift compensation.
@@ -29,9 +29,9 @@ time_interval: 0.1                              # Time layer is updated with thi
 map_acquire_fps: 50.0                            # Raw map is fetched from GPU memory in this fps.
 publish_statistics_fps: 1.0                     # Publish statistics topic in this fps.
 
-max_ray_length: 40.0                            # maximum length for ray tracing.
+max_ray_length: 80.0                            # maximum length for ray tracing.
 cleanup_step: 0.1                               # subtitute this value from validity layer at visibiltiy cleanup.
-cleanup_cos_thresh: 0.5                         # subtitute this value from validity layer at visibiltiy cleanup.
+cleanup_cos_thresh: 0.1                         # subtitute this value from validity layer at visibiltiy cleanup.
 
 safe_thresh: 0.7                                # if traversability is smaller, it is counted as unsafe cell.
 safe_min_thresh: 0.4                            # polygon is unsafe if there exists lower traversability than this.
@@ -71,15 +71,16 @@ plugin_config_file: '$(rospack find elevation_mapping_cupy)/config/plugin_config
 #                     '/robot_self_filter/bpearl_front/point_cloud',
 #                     '/robot_self_filter/bpearl_rear/point_cloud'
 #                     ]
-pointcloud_topics: ['/points']
-min_z: -0.5
-max_z: 1.5
-min_depth: 0.4
-max_depth: 16.0
+pointcloud_topics: ['/boxed_points', '/flat_ground_cloud']
+# the following parameters are no longer used.
+min_z: 10
+max_z: -10
+min_depth: 0.1
+max_depth: 80.0
 voxel_size: 0.125
 outlier_factor: 2
-min_nbrs: 2
-voxel_samples: 2
+min_nbrs: -1
+voxel_samples: -1
 time_lag: -0.01
 #### Publishers ########
 # topic_name:
